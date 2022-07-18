@@ -22,3 +22,17 @@ az network vnet subnet update -g $ARO_RG --vnet-name vnet-aro -n "subnet-worker"
 
 # Create ARO
 az aro create --resource-group $ARO_RG --name $ARO_NAME --vnet vnet-aro --master-subnet subnet-control --worker-subnet subnet-worker --domain $Zone --pull-secret "@$Home\Downloads\secret.txt"
+
+# Query and save endpoints
+az aro show -n $ARO_NAME -g $ARO_RG --query '{api:apiserverProfile.ip, ingress:ingressProfile[0].ip}'
+$API_IP = (az aro show -n $ARO_NAME -g $ARO_RG --query '{api:apiserverProfile.ip}' -o tsv)
+$INGRESS_IP = (az aro show -n $ARO_NAME -g $ARO_RG -- '{ingress:ingressProfile[0].ip}' -o tsv)
+
+# Create DNS records
+Add-DnsServerResourceRecordA -IPv4Address $API_IP -ZoneName $Zone -Name "api"
+Add-DnsServerResourceRecordA -IPv4Address $INGRESS_IP -ZoneName $Zone -Name ".apps"
+
+# Show resources
+Start-Process ("https://portal.azure.com/#@" + (az account show --query tenantId -o tsv) + "/resource" + (az group show -n $ARO_RG --query id -o tsv))
+az aro show -n $ARO_NAME -g $ARO_RG --query clusterProfile
+Start-Process ("https://portal.azure.com/#@" + (az account show --query tenantId -o tsv) + "/resource" + (az aro show -n $ARO_NAME -g $ARO_RG --query clusterProfile))
