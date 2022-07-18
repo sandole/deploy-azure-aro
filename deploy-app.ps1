@@ -35,3 +35,5 @@ Start-Process http://ocp-w-3.ocp.mycustomdomain.io:$PORT
 
 # Example WordPress application
 ./oc new-project wordpress
+
+Start-Process http://console-openshift-console.apps.ocp.mycustomdomain.io/
